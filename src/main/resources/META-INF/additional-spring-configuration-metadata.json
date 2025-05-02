@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "clashbuddy.clashaccess.gateway",
+      "type": "studio.clashbuddy.clashaccess.gateway.ClashAccessGatewayProperties",
+      "sourceType": "studio.clashbuddy.clashaccess.gateway.ClashAccessGatewayProperties"
+    }
+
+  ],
+  "properties": [
+    {
+      "name": "clashbuddy.clashaccess.gateway.access.endpoint",
+      "type": "java.lang.String",
+      "description": "The access endpoint to expose"
+    },
+    {
+      "name": "clashbuddy.clashaccess.gateway.access.key",
+      "type": "java.lang.String",
+      "description": "The API key for access access"
+    }
+  ]
+}

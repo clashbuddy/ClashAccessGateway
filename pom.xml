@@ -10,7 +10,7 @@
     </parent>
     <groupId>studio.clashbuddy</groupId>
     <artifactId>spring-boot-starter-clashaccess-gateway</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>ClashAccessGateway</name>
     <description>ClashAccess Gateway support is for spring cloud gateway filter which works directly to clashaccess in down services</description>
     <url>https://github.com/clashbuddy/ClashAccessGateway</url>
@@ -38,7 +38,7 @@
         <connection>scm:git:git://github.com/clashbuddy/ClashAccessGateway.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/clashbuddy/ClashAccessGateway.git</developerConnection>
         <url>https://github.com/clashbuddy/ClashAccessGateway</url>
-        <tag>v1.0.0</tag>
+        <tag>v1.1.0</tag>
     </scm>
     <properties>
         <spring.version>6.2.6</spring.version>
@@ -72,6 +72,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <version>3.2.0</version>
         </dependency>
     </dependencies>
 

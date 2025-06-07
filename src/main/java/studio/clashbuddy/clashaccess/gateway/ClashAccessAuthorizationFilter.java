@@ -78,10 +78,12 @@ public class ClashAccessAuthorizationFilter extends AbstractGatewayFilterFactory
                     .headers(httpHeaders -> {
                         httpHeaders.remove(HttpHeaders.AUTHORIZATION);
                         httpHeaders.remove("x-ca-uid");
+                        httpHeaders.remove("x-ca-uid2");
                         httpHeaders.remove("x-ca-urs");
                         httpHeaders.remove("x-ca-ups");
 
                         httpHeaders.set("x-ca-uid", payload.getUserId());
+                        httpHeaders.set("x-ca-uid2", payload.getUserId2());
                         httpHeaders.addAll("x-ca-urs",roles);
                         httpHeaders.addAll("x-ca-ups", permissions);
                     })

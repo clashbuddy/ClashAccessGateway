@@ -22,6 +22,17 @@ public class JwtUtility {
     }
 
 
+
+    private String getToken(List<String> roles,List<String> permissions, String userId, TokenType tokenType, double duration) {
+        return JWT.create()
+                .withSubject(userId)
+                .withExpiresAt(expireDate(duration))
+                .withClaim("roles",roles)
+                .withClaim("tokenType",tokenType.name())
+                .withClaim("permissions",permissions)
+                .sign(getAlgorithm());
+    }
+
     private DecodedJWT verifyToken(String token) {
         try {
             JWTVerifier verifier = JWT.require(getAlgorithm()).build();
@@ -38,19 +49,8 @@ public class JwtUtility {
         String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
         String[] permissions = decodedJWT.getClaim("permissions").asArray(String.class);
         String tokenType = decodedJWT.getClaim("tokenType").asString().toUpperCase();
-        String tokenVersion;
-        String userId2;
-        try {
-            tokenVersion = decodedJWT.getClaim("tokenVersion").asString().toUpperCase();
-        }catch (Exception e){
-            tokenVersion = null;
-        }
-        try {
-            userId2 = decodedJWT.getClaim("userId2").asString();
-        }catch (Exception e){
-            userId2 = null;
-        }
-
+        String userId2 =decodedJWT.getClaim("userId2").asString();
+        String tokenVersion = decodedJWT.getClaim("tokenVersion").asString().toUpperCase();
         return Pair.of(new ClashAuthPayload(userId,userId2,roles,permissions,tokenVersion), TokenType.valueOf(tokenType));
     }
 
@@ -64,11 +64,20 @@ public class JwtUtility {
         return verifyToken(token);
     }
 
+    public Pair<String,String> generateJWT(String userId, String[] roles,
+                                           String[] permissions, double accessMinutes, double refreshMinutes) {
+        final var ACCESS_TOKEN = getToken(Arrays.stream(roles).toList(), Arrays.stream(permissions).toList(),userId, TokenType.ACCESS,accessMinutes);
+        final var REFRESH_TOKEN = getToken(Arrays.stream(roles).toList(), Arrays.stream(permissions).toList(),userId, TokenType.REFRESH,refreshMinutes);
+        return Pair.of(ACCESS_TOKEN, REFRESH_TOKEN);
+    }
 
     private Algorithm getAlgorithm() {
         return Algorithm.HMAC256(secret);
     }
 
+    public Date expireDate(double expireMinutes) {
+        return new Date(System.currentTimeMillis() + (long) expireMinutes * 60 * 1000);
+    }
 
     public enum  TokenType {
         ACCESS,REFRESH

@@ -22,77 +22,66 @@ public class ClashAccessAuthorizationFilter extends AbstractGatewayFilterFactory
     private final ClashAccessGatewayProperties properties;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
     private final TokenVersionRedisService tokenVersionRedisService;
-
     public ClashAccessAuthorizationFilter(I18nHelper i18nHelper, ClashAccessGatewayProperties properties, TokenVersionRedisService tokenVersionRedisService) {
         super(Config.class);
         this.i18nHelper = i18nHelper;
         this.properties = properties;
         this.tokenVersionRedisService = tokenVersionRedisService;
-        this.jwtUtility = new JwtUtility(properties.getJwtSecret(), i18nHelper);
+        this.jwtUtility = new JwtUtility(properties.getJwtSecret(),i18nHelper);
     }
 
     private boolean isAllowedPath(ServerHttpRequest request) {
-        var endingPoint = request.getURI().getPath();
-        if (properties.getPublicPaths().stream().anyMatch(path -> antPathMatcher.match(path, endingPoint)))
-            return true;
-        var upgrade = request.getHeaders().get("upgrade");
-        if (upgrade == null) return false;
-        return upgrade.contains("websocket");
+        String endingPoint = request.getURI().getPath();
+        return this.properties.getPublicPaths().stream().anyMatch((path) -> this.antPathMatcher.match(path, endingPoint));
     }
 
-    private String extractToken(HttpHeaders headers) {
-        if (!headers.containsKey(HttpHeaders.AUTHORIZATION))
-            throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.missing.auth-header}"), 401);
+    private String extractToken(HttpHeaders headers){
+        if(!headers.containsKey(HttpHeaders.AUTHORIZATION))
+            throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.missing.auth-header}"),401);
         String token = Objects.requireNonNull(headers.get(HttpHeaders.AUTHORIZATION)).get(0);
-        if (token == null || !token.startsWith("Bearer "))
-            throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.missing.token-not-bearer}"), 401);
-        return token;
+        if(token == null || !token.startsWith("Bearer "))
+            throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.missing.token-not-bearer}"),401);
+        return  token;
     }
+
+
 
 
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
 
-            if (isAllowedPath(exchange.getRequest()))
+            if(isAllowedPath(exchange.getRequest()))
                 return chain.filter(exchange);
             var token = extractToken(exchange.getRequest().getHeaders());
             var jwtSession = jwtUtility.validateToken(token);
             var payload = jwtSession.getFirstItem();
             var type = jwtSession.getSecondItem();
-            if (!type.equals(JwtUtility.TokenType.ACCESS))
-                throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.missing.token-is-not-access}"), 403);
+            if(!type.equals(JwtUtility.TokenType.ACCESS))
+                throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.missing.token-is-not-access}"),403);
 
-            if (!properties.isBypassTokenVersion()) {
+            if (!this.properties.isBypassTokenVersion()) {
                 if (payload.getTokenVersion() == null)
-                    throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.missing.token-is-not-access}"), 403);
-                var tokenVersion = tokenVersionRedisService.getTokenVersion(payload.getUserId());
+                    throw new ClashAccessDeniedException(this.i18nHelper.i18n("{clashaccess.error.missing.token-is-not-access}", new Object[0]), 401);
+                String tokenVersion = this.tokenVersionRedisService.getTokenVersion(payload.getUserId());
                 if (!payload.getTokenVersion().equals(tokenVersion))
-                    throw new ClashAccessDeniedException(i18nHelper.i18n("{clashaccess.error.token-version-out-dated}"), 403);
+                    throw new ClashAccessDeniedException(this.i18nHelper.i18n("{clashaccess.error.token-version-out-dated}", new Object[0]), 401);
             }
 
             List<String> roles = new ArrayList<>(Arrays.asList(payload.getRoles()));
             List<String> permissions = new ArrayList<>(Arrays.asList(payload.getPermissions()));
-
-            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                    .headers(httpHeaders -> {
-                        httpHeaders.remove(HttpHeaders.AUTHORIZATION);
-                        httpHeaders.remove("x-ca-uid");
-                        httpHeaders.remove("x-ca-uid2");
-                        httpHeaders.remove("x-ca-urs");
-                        httpHeaders.remove("x-ca-ups");
-
-                        httpHeaders.set("x-ca-uid", payload.getUserId());
-                        httpHeaders.set("x-ca-uid2", payload.getUserId2());
-                        httpHeaders.addAll("x-ca-urs",roles);
-                        httpHeaders.addAll("x-ca-ups", permissions);
-                    })
-                    .build();
-
-            ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(mutatedRequest)
-                    .build();
-
+            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate().headers((httpHeaders) -> {
+                httpHeaders.remove("Authorization");
+                httpHeaders.remove("x-ca-uid");
+                httpHeaders.remove("x-ca-uid2");
+                httpHeaders.remove("x-ca-urs");
+                httpHeaders.remove("x-ca-ups");
+                httpHeaders.set("x-ca-uid", payload.getUserId());
+                httpHeaders.set("x-ca-uid2", payload.getUserId2());
+                httpHeaders.addAll("x-ca-urs", roles);
+                httpHeaders.addAll("x-ca-ups", permissions);
+            }).build();
+            ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
             return chain.filter(mutatedExchange);
         };
     }
@@ -102,8 +91,9 @@ public class ClashAccessAuthorizationFilter extends AbstractGatewayFilterFactory
         return 1;
     }
 
-    public static class Config {
-    }
+    public static class Config{}
+
+
 
 
 }

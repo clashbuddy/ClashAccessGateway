@@ -17,6 +17,8 @@ import reactor.core.publisher.Mono;
 import java.net.ConnectException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Component
 @Order(-2)
@@ -24,6 +26,8 @@ public class ClashAccessGlobalExceptionHandler implements ErrorWebExceptionHandl
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final I18nHelper i18nHelper;
+    private static final Logger LOGGER = Logger.getLogger(ClashAccessGlobalExceptionHandler.class.getName());
+
 
     public ClashAccessGlobalExceptionHandler(I18nHelper i18nHelper) {
         this.i18nHelper = i18nHelper;
@@ -53,12 +57,21 @@ public class ClashAccessGlobalExceptionHandler implements ErrorWebExceptionHandl
             errorType = "CONNECTION_FAILED";
         }
 
+        String path = exchange.getRequest().getURI().getPath();
+        if(errorType.equals("UNEXPECTED_ERROR")){
+            LOGGER.log(
+                    Level.SEVERE,
+                    "Unhandled exception at path=" + path + ", message=" + ex.getMessage(),
+                    ex
+            );
+        }
+
         Map<String, Object> body = Map.of(
                 "timestamp", Instant.now().toString(),
                 "status", status.value(),
                 "error", errorType,
                 "message", message,
-                "path", exchange.getRequest().getPath().toString()
+                "path", path
         );
 
         ServerHttpResponse response = exchange.getResponse();

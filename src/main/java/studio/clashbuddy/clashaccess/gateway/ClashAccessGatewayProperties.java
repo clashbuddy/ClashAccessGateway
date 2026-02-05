@@ -9,8 +9,8 @@ import java.util.List;
 @ConfigurationProperties(prefix = "clashbuddy.clashaccess.gateway")
 public class ClashAccessGatewayProperties {
     private String jwtSecret;
-    private boolean bypassTokenVersion;
     private List<String> publicPaths = new ArrayList<>();
+    private boolean bypassTokenVersion;
 
     public List<String> getPublicPaths() {
         return publicPaths;
@@ -31,7 +31,6 @@ public class ClashAccessGatewayProperties {
     public boolean isBypassTokenVersion() {
         return bypassTokenVersion;
     }
-
     public void setBypassTokenVersion(boolean bypassTokenVersion) {
         this.bypassTokenVersion = bypassTokenVersion;
     }

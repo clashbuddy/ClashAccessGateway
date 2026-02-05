@@ -8,8 +8,7 @@ public class ClashAuthPayload {
     private final String[] permissions;
     private final String tokenVersion;
 
-
-    public ClashAuthPayload(String userId,String userId2, String[] roles, String[] permissions, String tokenVersion) {
+    public ClashAuthPayload(String userId, String userId2, String[] roles, String[] permissions, String tokenVersion) {
         this.userId = userId;
         this.userId2 = userId2;
         this.roles = roles;
@@ -18,22 +17,22 @@ public class ClashAuthPayload {
     }
 
     public String getTokenVersion() {
-        return tokenVersion;
+        return this.tokenVersion;
     }
 
     public String getUserId() {
-        return userId;
+        return this.userId;
     }
 
     public String[] getRoles() {
-        return roles;
+        return this.roles;
     }
 
     public String[] getPermissions() {
-        return permissions;
+        return this.permissions;
     }
 
     public String getUserId2() {
-        return userId2;
+        return this.userId2;
     }
 }
